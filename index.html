@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Chronicles of the Lost Realm</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+  <div id="uiOverlay">
+    <div id="mainMenu" class="menu-screen">
+      <h1 class="game-title">Chronicles of the<br>Lost Realm</h1>
+      <div class="menu-subtitle">A Pixel Quest Adventure</div>
+      <div class="menu-buttons">
+        <button class="menu-btn" onclick="game.startGame()">New Game</button>
+        <button class="menu-btn" onclick="game.showLevelSelect()">Level Select</button>
+        <button class="menu-btn" onclick="game.showSettings()">Settings</button>
+      </div>
+    </div>
+    <div id="pauseMenu" class="menu-screen hidden">
+      <h2>PAUSED</h2>
+      <div class="menu-buttons">
+        <button class="menu-btn" onclick="game.resumeGame()">Resume</button>
+        <button class="menu-btn" onclick="game.restartLevel()">Restart</button>
+        <button class="menu-btn" onclick="game.quitToMenu()">Main Menu</button>
+        <button class="menu-btn" onclick="game.showSettings()">Settings</button>
+      </div>
+    </div>
+    <div id="settingsMenu" class="menu-screen hidden">
+      <h2>SETTINGS</h2>
+      <div style="display:flex;gap:30px;margin-bottom:15px;flex-wrap:wrap;justify-content:center;">
+        <div class="settings-group">
+          <h3 style="color:#ffd700;font-size:14px;margin-bottom:8px;text-align:center;">Audio</h3>
+          <label>Music: <input type="range" id="musicVolume" min="0" max="100" value="70" onchange="game.updateSettings()"></label>
+          <label>SFX: <input type="range" id="sfxVolume" min="0" max="100" value="80" onchange="game.updateSettings()"></label>
+          <label><input type="checkbox" id="screenShake" checked onchange="game.updateSettings()"> Screen Shake</label>
+          <label><input type="checkbox" id="particles" checked onchange="game.updateSettings()"> Particles</label>
+        </div>
+        <div class="settings-group" id="keyBindingsGroup">
+          <h3 style="color:#ffd700;font-size:14px;margin-bottom:8px;text-align:center;">Controls</h3>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+        <button class="menu-btn" style="min-width:120px;padding:8px 15px;font-size:12px;" onclick="game.resetControls()">Reset Controls</button>
+        <button class="menu-btn" style="min-width:120px;padding:8px 15px;font-size:12px;" onclick="game.closeSettings()">Back</button>
+      </div>
+    </div>
+    <div id="levelSelect" class="menu-screen hidden">
+      <h2>LEVEL SELECT</h2>
+      <div id="levelList" class="level-list"></div>
+      <button class="menu-btn" onclick="game.closeLevelSelect()">Back</button>
+    </div>
+    <div id="gameOverScreen" class="menu-screen hidden">
+      <h2>GAME OVER</h2>
+      <p id="gameOverScore">Score: 0</p>
+      <div class="menu-buttons">
+        <button class="menu-btn" onclick="game.restartLevel()">Retry</button>
+        <button class="menu-btn" onclick="game.quitToMenu()">Main Menu</button>
+      </div>
+    </div>
+    <div id="victoryScreen" class="menu-screen hidden">
+      <div class="victory-title">★ LEVEL COMPLETE! ★</div>
+      <div class="stars" id="starsDisplay">⭐⭐⭐</div>
+      <div class="stats-box" id="victoryStats">
+        <span>TIME<br><strong id="victoryTime">00:00</strong></span>
+        <span>SCORE<br><strong id="victoryScore">0</strong></span>
+        <span>COINS<br><strong id="victoryCoins">0</strong></span>
+        <span>GEMS<br><strong id="victoryGems">0</strong></span>
+      </div>
+      <p id="victoryMessage" style="color:#aaa;font-size:13px;margin-bottom:15px;">Great job, MOHSIN!</p>
+      <div class="menu-buttons" id="victoryButtons">
+        <button class="menu-btn" onclick="game.nextLevel()">Next Level</button>
+        <button class="menu-btn" onclick="game.quitToMenu()">Main Menu</button>
+      </div>
+    </div>
+    <div id="gameCompleteScreen" class="menu-screen hidden">
+      <div class="complete-title">🏆 YOU COMPLETE THIS GAME! 🏆</div>
+      <div class="stars" style="font-size:36px;">⭐⭐⭐⭐⭐</div>
+      <p style="color:#ffd700;font-size:20px;margin:10px 0;font-weight:bold;">Congratulations MOHSIN!</p>
+      <div class="stats-box" id="finalStats">
+        <span>FINAL SCORE<br><strong id="finalScore">0</strong></span>
+        <span>COINS<br><strong id="finalCoins">0</strong></span>
+        <span>GEMS<br><strong id="finalGems">0</strong></span>
+      </div>
+      <p style="color:#888;font-size:12px;margin-bottom:15px;">You have conquered all 3 levels!</p>
+      <div class="menu-buttons">
+        <button class="menu-btn" onclick="game.quitToMenu()">Main Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/utils/Constants.js"></script>
+<script src="js/utils/MathUtils.js"></script>
+<script src="js/utils/Sprite.js"></script>
+<script src="js/engine/ObjectPool.js"></script>
+<script src="js/engine/Audio.js"></script>
+<script src="js/engine/Input.js"></script>
+<script src="js/engine/Camera.js"></script>
+<script src="js/engine/ParticleSystem.js"></script>
+<script src="js/engine/SaveSystem.js"></script>
+<script src="js/engine/Canvas.js"></script>
+<script src="js/entities/Entity.js"></script>
+<script src="js/entities/particles/Particle.js"></script>
+<script src="js/entities/powerups/PowerUp.js"></script>
+<script src="js/entities/enemies/Enemy.js"></script>
+<script src="js/entities/enemies/Walker.js"></script>
+<script src="js/entities/enemies/Runner.js"></script>
+<script src="js/entities/enemies/Bat.js"></script>
+<script src="js/entities/enemies/Bee.js"></script>
+<script src="js/entities/enemies/Turtle.js"></script>
+<script src="js/entities/enemies/Slime.js"></script>
+<script src="js/entities/enemies/FireSpirit.js"></script>
+<script src="js/entities/enemies/ArcherGoblin.js"></script>
+<script src="js/entities/enemies/GiantCrab.js"></script>
+<script src="js/entities/enemies/RollingRock.js"></script>
+<script src="js/entities/enemies/Ghost.js"></script>
+<script src="js/entities/enemies/PlantMonster.js"></script>
+<script src="js/entities/enemies/SpikeBeast.js"></script>
+<script src="js/entities/enemies/MiniBoss.js"></script>
+<script src="js/entities/enemies/FinalBoss.js"></script>
+<script src="js/entities/Player.js"></script>
+<script src="js/level/TileMap.js"></script>
+<script src="js/level/Platform.js"></script>
+<script src="js/level/Level.js"></script>
+<script src="js/level/levels/Level1.js"></script>
+<script src="js/level/levels/Level2.js"></script>
+<script src="js/level/levels/Level3.js"></script>
+
+<script src="js/ui/HUD.js"></script>
+<script src="js/ui/Menu.js"></script>
+<script src="js/engine/Game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
